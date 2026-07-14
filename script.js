@@ -8,8 +8,15 @@ const singleForm=document.getElementById("singleform-Input");
 const singleInput=document.getElementById("single-input");
 
 const singleCardProfile=document.getElementById("cardProfile");
-const singleDemoResult=document.getElementById("single-result")
-const loading=document.getElementById("loading")
+const singleDemoResult=document.getElementById("single-result");
+const loading=document.getElementById("loading");
+
+const battleModeForm=document.getElementById("battleMode-form");
+const battleInput1=document.getElementById('battle-input-1');
+const battleInput2=document.getElementById("battle-input-2")
+const battledemoResult=document.getElementById("demo-result");
+const loading1=document.getElementById("loading1")
+const battleResult=document.getElementById("battle-result");
 
 
 singleSection.style.display="block";
@@ -145,8 +152,6 @@ singleForm.addEventListener("submit",async(event)=>{
                  </div>
     `;
 
-    console.log(result);
-
     } catch (error) {
         
         loading.classList.add("hidden");
@@ -162,3 +167,140 @@ singleForm.addEventListener("submit",async(event)=>{
         
     }
 })
+
+
+
+battleModeForm.addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    battledemoResult.style.display="none";
+    loading1.classList.remove("hidden");
+    battleResult.style.display="none";
+
+    try {
+        const username1=battleInput1.value;
+        const username2=battleInput2.value;
+        const url1=`https://api.github.com/users/${username1}`;
+        const url2=`https://api.github.com/users/${username2}`;
+
+        const response=await Promise.all([fetch(url1),fetch(url2)]);
+        console.log("response",response)
+
+        const data1=await response[0].json();
+        const data2=await response[1].json();
+        
+        const repoResponse=await Promise.all([fetch(data1.repos_url),fetch(data2.repos_url)]);
+        const reposData1=await repoResponse[0].json();
+        const reposData2=await repoResponse[1].json();
+
+
+        const stars1 = reposData1.reduce(
+          (sum, repo) => sum + repo.stargazers_count, 0);
+
+       const stars2 = reposData2.reduce(
+         (sum, repo) => sum + repo.stargazers_count,0);
+
+         loading1.classList.add("hidden");
+             battleResult.style.display="block";
+
+
+         battleResult.innerHTML = `
+         <div class="grid md:grid-cols-2 gap-10">
+
+         ${createProfileCard(
+             data1,
+             reposData1,
+             stars1 > stars2 ? "border-green-500" : "border-red-500"
+         )}
+
+         ${createProfileCard(
+             data2,
+             reposData2,
+             stars2 > stars1 ? "border-green-500" : "border-red-500"
+         )}
+
+         </div>
+         `;
+         
+        
+    } catch (error) {
+         loading1.classList.add("hidden");
+
+        battleResult.style.display = "block";
+        battleResult.innerHTML = `
+            <h2 class="text-red-500 text-xl font-bold">
+                User Not Found
+            </h2>
+            `
+        
+    }
+
+})
+
+
+function createProfileCard(user, repos, borderColor) {
+
+    const totalStars = repos.reduce((sum, repo) => {
+        return sum + repo.stargazers_count;
+    }, 0);
+
+    const latestRepos = repos.slice(0, 5);
+
+    return `
+    <div class="bg-[#050505] border-2 ${borderColor} mt-10 shadow-2xl">
+
+        <div class="p-10">
+
+            <div class="flex gap-10">
+
+                <div class="w-32 h-32 border-2 ${borderColor}">
+                    <img
+                        src="${user.avatar_url}"
+                        class="w-full h-full object-cover"
+                    >
+                </div>
+
+                <div>
+
+                    <span class="text-neon">@${user.login}</span>
+
+                    <h1 class="text-3xl font-bold">
+                        ${user.name ?? "No Name"}
+                    </h1>
+
+                    <p>${user.bio ?? "No Bio"}</p>
+
+                    <div class="mt-5">
+                        ⭐ Total Stars : ${totalStars}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr class="my-6">
+
+            <h2>Latest Repositories</h2>
+
+            ${latestRepos.map(repo=>`
+
+                <a
+                    href="${repo.html_url}"
+                    target="_blank"
+                    class="flex justify-between mt-4 hover:text-neon"
+                >
+
+                    <span>${repo.name}</span>
+
+                    <span>
+                        ⭐ ${repo.stargazers_count}
+                    </span>
+
+                </a>
+
+            `).join("")}
+
+        </div>
+
+    </div>
+    `;
+}
