@@ -246,6 +246,8 @@ function createProfileCard(user, repos, borderColor) {
     const latestRepos = repos.slice(0, 5);
 
     return `
+    <div>
+    ${borderColor=="border-green-500" ? "<h1>Winner</h1>" : "<h1>Looser</h1>"}
     <div class="bg-[#050505] border-2 ${borderColor} mt-10 shadow-2xl">
 
         <div class="p-10">
@@ -301,6 +303,7 @@ function createProfileCard(user, repos, borderColor) {
 
         </div>
 
+    </div>
     </div>
     `;
 }
