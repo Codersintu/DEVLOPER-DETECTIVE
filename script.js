@@ -58,7 +58,16 @@ singleForm.addEventListener("submit",async(event)=>{
     const url=`https://api.github.com/users/${username}`;
 
     const response=await fetch(url);
-    if(!response.ok) throw new Error(`Response status:${response.status}`);
+    if(!response.ok) {
+        loading.classList.add("hidden");
+
+        singleDemoResult.style.display = "block";
+        singleDemoResult.innerHTML = `
+            <h2 class="text-red-500 text-xl font-bold">
+                User Not Found
+            </h2>
+        `;
+    };
 
     const result=await response.json();
     const repoResponse = await fetch(result.repos_url);
@@ -189,6 +198,15 @@ battleModeForm.addEventListener("submit",async(event)=>{
         const data2=await response[1].json();
         
         const repoResponse=await Promise.all([fetch(data1.repos_url),fetch(data2.repos_url)]);
+        if(!repoResponse.ok){
+             loading1.classList.add("hidden");
+             battleResult.style.display = "block";
+             battleResult.innerHTML = `
+            <h2 class="text-red-500 text-xl font-bold">
+                User Not Found
+            </h2>
+            `
+        }
         const reposData1=await repoResponse[0].json();
         const reposData2=await repoResponse[1].json();
 
@@ -307,3 +325,4 @@ function createProfileCard(user, repos, borderColor) {
     </div>
     `;
 }
+
